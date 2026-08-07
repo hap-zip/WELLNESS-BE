@@ -1,0 +1,16 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: wellness-chat-backend
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: gpt-4o-mini
+  base-url: https://api.openai.com/v1
+  timeout-seconds: 20
+wellness:
+  guardrail:
+    enabled: true
+  daily-check:
+    min-days-for-pattern: 7
+    lookback-days: 14
