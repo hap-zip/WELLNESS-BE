@@ -1,10 +1,9 @@
 package com.example.wellnesschatbackend.wellnessdailyexpert.expertcard.dto.response;
 
 import java.util.List;
-import java.util.UUID;
 
 public record ExpertCardResponse(
-        UUID id,
+        Long id,
         String period,
         String startDate,
         String endDate,
