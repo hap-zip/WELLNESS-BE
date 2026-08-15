@@ -18,14 +18,14 @@ class MockDailyCheckProviderTest {
 
     @Test
     void 최근_7일치를_요청하면_7건이_최신순으로_와야한다() {
-        List<DailyCheck> checks = provider.getRecentChecks("any-user", 7);
+        List<DailyCheck> checks = provider.getRecentChecks(1L, 7);
         assertThat(checks).hasSize(7);
         assertThat(checks).isSortedAccordingTo((a, b) -> b.date().compareTo(a.date()));
     }
 
     @Test
     void 엎드려잔_날이_그렇지_않은_날보다_목뻐근함_평균이_높아야한다() {
-        List<DailyCheck> checks = provider.getRecentChecks("any-user", 7);
+        List<DailyCheck> checks = provider.getRecentChecks(1L, 7);
         double proneAvg = checks.stream()
                 .filter(c -> c.sleepPosture() == SleepPosture.PRONE)
                 .mapToInt(DailyCheck::neckPainScore)
