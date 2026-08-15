@@ -1,10 +1,9 @@
 package com.example.wellnesschatbackend.wellnessdailyexpert.dailycheck.dto.response;
 
 import java.util.List;
-import java.util.UUID;
 
 public record DailyCheckResponse(
-        UUID id,
+        Long id,
         String date,
         String condition,
         List<String> conditionTags,

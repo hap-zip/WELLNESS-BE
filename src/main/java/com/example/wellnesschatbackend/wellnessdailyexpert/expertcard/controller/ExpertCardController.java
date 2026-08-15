@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/expert-cards")
@@ -30,24 +29,24 @@ public class ExpertCardController {
 
     @PostMapping
     public ResponseEntity<ExpertCardResponse> create(
-            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Id") Long userId,
             @Valid @RequestBody ExpertCardRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(expertCardService.create(userId, request));
     }
 
     @GetMapping
-    public List<ExpertCardResponse> list(@RequestHeader("X-User-Id") UUID userId) {
+    public List<ExpertCardResponse> list(@RequestHeader("X-User-Id") Long userId) {
         return expertCardService.list(userId);
     }
 
     @GetMapping("/{cardId}")
-    public ExpertCardResponse get(@RequestHeader("X-User-Id") UUID userId, @PathVariable UUID cardId) {
+    public ExpertCardResponse get(@RequestHeader("X-User-Id") Long userId, @PathVariable Long cardId) {
         return expertCardService.get(userId, cardId);
     }
 
     @DeleteMapping("/{cardId}")
-    public ResponseEntity<Void> delete(@RequestHeader("X-User-Id") UUID userId, @PathVariable UUID cardId) {
+    public ResponseEntity<Void> delete(@RequestHeader("X-User-Id") Long userId, @PathVariable Long cardId) {
         expertCardService.delete(userId, cardId);
         return ResponseEntity.noContent().build();
     }

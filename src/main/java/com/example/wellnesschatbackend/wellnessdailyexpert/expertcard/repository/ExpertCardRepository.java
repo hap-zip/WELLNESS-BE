@@ -5,11 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-public interface ExpertCardRepository extends JpaRepository<ExpertCard, UUID> {
+public interface ExpertCardRepository extends JpaRepository<ExpertCard, Long> {
 
-    List<ExpertCard> findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID userId);
+    List<ExpertCard> findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long userId);
 
-    Optional<ExpertCard> findByIdAndUserIdAndDeletedAtIsNull(UUID id, UUID userId);
+    Optional<ExpertCard> findByIdAndUserIdAndDeletedAtIsNull(Long id, Long userId);
 }

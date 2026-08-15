@@ -1,0 +1,12 @@
+package com.example.wellnesschatbackend.wellnessdailyexpert.health.repository;
+
+import com.example.wellnesschatbackend.wellnessdailyexpert.health.entity.HealthData;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+public interface HealthDataRepository extends JpaRepository<HealthData, Long> {
+
+    Optional<HealthData> findByUserIdAndRecordDate(Long userId, LocalDate recordDate);
+}

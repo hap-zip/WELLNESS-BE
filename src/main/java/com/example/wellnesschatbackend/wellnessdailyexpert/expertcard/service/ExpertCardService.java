@@ -11,6 +11,8 @@ import com.example.wellnesschatbackend.wellnessdailyexpert.exception.ErrorCode;
 import com.example.wellnesschatbackend.wellnessdailyexpert.exception.NotFoundException;
 import com.example.wellnesschatbackend.wellnessdailyexpert.dailycheck.repository.DailyCheckRepository;
 import com.example.wellnesschatbackend.wellnessdailyexpert.expertcard.repository.ExpertCardRepository;
+import com.example.wellnesschatbackend.wellnessdailyexpert.health.entity.HealthData;
+import com.example.wellnesschatbackend.wellnessdailyexpert.health.repository.HealthDataRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalDouble;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,14 +33,20 @@ public class ExpertCardService {
 
     private final ExpertCardRepository expertCardRepository;
     private final DailyCheckRepository dailyCheckRepository;
+    private final HealthDataRepository healthDataRepository;
 
-    public ExpertCardService(ExpertCardRepository expertCardRepository, DailyCheckRepository dailyCheckRepository) {
+    public ExpertCardService(
+            ExpertCardRepository expertCardRepository,
+            DailyCheckRepository dailyCheckRepository,
+            HealthDataRepository healthDataRepository
+    ) {
         this.expertCardRepository = expertCardRepository;
         this.dailyCheckRepository = dailyCheckRepository;
+        this.healthDataRepository = healthDataRepository;
     }
 
     @Transactional
-    public ExpertCardResponse create(UUID userId, ExpertCardRequest request) {
+    public ExpertCardResponse create(Long userId, ExpertCardRequest request) {
         ReportPeriod period = ReportPeriod.fromWireValue(request.period());
         DateRange range = resolveRange(period, request.startDate(), request.endDate());
 
@@ -91,21 +98,21 @@ public class ExpertCardService {
     }
 
     @Transactional(readOnly = true)
-    public List<ExpertCardResponse> list(UUID userId) {
+    public List<ExpertCardResponse> list(Long userId) {
         return expertCardRepository.findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public ExpertCardResponse get(UUID userId, UUID cardId) {
+    public ExpertCardResponse get(Long userId, Long cardId) {
         ExpertCard card = expertCardRepository.findByIdAndUserIdAndDeletedAtIsNull(cardId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.EXPERT_CARD_NOT_FOUND, "요약 카드를 찾을 수 없어요."));
         return toResponse(card);
     }
 
     @Transactional
-    public void delete(UUID userId, UUID cardId) {
+    public void delete(Long userId, Long cardId) {
         ExpertCard card = expertCardRepository.findByIdAndUserIdAndDeletedAtIsNull(cardId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.EXPERT_CARD_NOT_FOUND, "요약 카드를 찾을 수 없어요."));
         card.setDeletedAt(LocalDateTime.now());
@@ -184,14 +191,29 @@ public class ExpertCardService {
                 .collect(Collectors.toList());
     }
 
+    /** override(daily_checks.auto_*)가 있으면 그걸, 없으면 health_data 원본을 쓴다. */
     private OptionalDouble averageSleepMinutes(List<DailyCheck> checks) {
-        return checks.stream().map(DailyCheck::getAutoSleepDurationMinutes).filter(Objects::nonNull)
+        return checks.stream().map(this::effectiveSleepMinutes).filter(Objects::nonNull)
                 .mapToInt(Integer::intValue).average();
     }
 
     private OptionalDouble averageSteps(List<DailyCheck> checks) {
-        return checks.stream().map(DailyCheck::getAutoSteps).filter(Objects::nonNull).mapToInt(Integer::intValue)
+        return checks.stream().map(this::effectiveSteps).filter(Objects::nonNull).mapToInt(Integer::intValue)
                 .average();
+    }
+
+    private Integer effectiveSleepMinutes(DailyCheck check) {
+        if (check.getAutoSleepDurationMinutes() != null) return check.getAutoSleepDurationMinutes();
+        return healthDataRepository.findByUserIdAndRecordDate(check.getUserId(), check.getCheckDate())
+                .map(HealthData::getSleepDurationMinutes)
+                .orElse(null);
+    }
+
+    private Integer effectiveSteps(DailyCheck check) {
+        if (check.getAutoSteps() != null) return check.getAutoSteps();
+        return healthDataRepository.findByUserIdAndRecordDate(check.getUserId(), check.getCheckDate())
+                .map(HealthData::getSteps)
+                .orElse(null);
     }
 
     private String describeChange(OptionalDouble current, OptionalDouble previous, String unit) {

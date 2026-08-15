@@ -6,13 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-public interface DailyCheckRepository extends JpaRepository<DailyCheck, UUID> {
+public interface DailyCheckRepository extends JpaRepository<DailyCheck, Long> {
 
-    Optional<DailyCheck> findByUserIdAndCheckDate(UUID userId, LocalDate checkDate);
+    Optional<DailyCheck> findByUserIdAndCheckDate(Long userId, LocalDate checkDate);
 
-    List<DailyCheck> findByUserIdAndCheckDateBetweenOrderByCheckDateAsc(UUID userId, LocalDate startDate, LocalDate endDate);
+    List<DailyCheck> findByUserIdAndCheckDateBetweenOrderByCheckDateAsc(Long userId, LocalDate startDate, LocalDate endDate);
 
-    void deleteByUserIdAndCheckDate(UUID userId, LocalDate checkDate);
+    void deleteByUserIdAndCheckDate(Long userId, LocalDate checkDate);
 }

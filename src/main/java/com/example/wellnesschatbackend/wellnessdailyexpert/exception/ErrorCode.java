@@ -9,6 +9,7 @@ public enum ErrorCode {
     INVALID_ARGUMENT(HttpStatus.BAD_REQUEST),
     MALFORMED_REQUEST_BODY(HttpStatus.BAD_REQUEST),
     TYPE_MISMATCH(HttpStatus.BAD_REQUEST),
+    MISSING_HEADER(HttpStatus.BAD_REQUEST),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final HttpStatus status;
