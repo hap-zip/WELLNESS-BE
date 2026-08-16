@@ -26,3 +26,6 @@ wellness:
   daily-check:
     min-days-for-pattern: 7
     lookback-days: 14
+  persistent-signal:
+    lookback-days: 7
+    persistent-threshold-days: 4
