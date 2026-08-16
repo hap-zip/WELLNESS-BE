@@ -20,16 +20,16 @@ import java.util.List;
 @Component
 public class MockDailyCheckProvider implements DailyCheckProvider {
     @Override
-    public List<DailyCheck> getRecentChecks(String userId, int days) {
+    public List<DailyCheck> getRecentChecks(Long userId, int days) {
         LocalDate today = LocalDate.now();
         List<DailyCheck> fixture = new ArrayList<>();
-        fixture.add(new DailyCheck(today.minusDays(6), 7.5, SleepPosture.SUPINE, 10, 2, null));
-        fixture.add(new DailyCheck(today.minusDays(5), 6.0, SleepPosture.PRONE, 12, 6, "아침에 목이 뻐근했음"));
-        fixture.add(new DailyCheck(today.minusDays(4), 7.0, SleepPosture.LEFT_SIDE, 10, 3, null));
-        fixture.add(new DailyCheck(today.minusDays(3), 5.5, SleepPosture.PRONE, 12, 7, "베개가 너무 높았던 듯"));
-        fixture.add(new DailyCheck(today.minusDays(2), 6.2, SleepPosture.PRONE, 12, 6, null));
-        fixture.add(new DailyCheck(today.minusDays(1), 7.8, SleepPosture.RIGHT_SIDE, 9, 2, null));
-        fixture.add(new DailyCheck(today, 6.5, SleepPosture.PRONE, 12, 7, "목이 뻐근해서 뒤척임"));
+        fixture.add(new DailyCheck(today.minusDays(6), 7.5, SleepPosture.SUPINE, "적당한 높이", 2, null));
+        fixture.add(new DailyCheck(today.minusDays(5), 6.0, SleepPosture.PRONE, "높은 편", 6, "아침에 목이 뻐근했음"));
+        fixture.add(new DailyCheck(today.minusDays(4), 7.0, SleepPosture.LEFT_SIDE, "적당한 높이", 3, null));
+        fixture.add(new DailyCheck(today.minusDays(3), 5.5, SleepPosture.PRONE, "높은 편", 7, "베개가 너무 높았던 듯"));
+        fixture.add(new DailyCheck(today.minusDays(2), 6.2, SleepPosture.PRONE, "높은 편", 6, null));
+        fixture.add(new DailyCheck(today.minusDays(1), 7.8, SleepPosture.RIGHT_SIDE, "낮은 편", 2, null));
+        fixture.add(new DailyCheck(today, 6.5, SleepPosture.PRONE, "높은 편", 7, "목이 뻐근해서 뒤척임"));
         return fixture.stream()
                 .sorted(Comparator.comparing(DailyCheck::date).reversed())
                 .limit(Math.max(days, 0))
