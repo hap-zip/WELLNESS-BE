@@ -20,7 +20,7 @@ public class PushHistory {
     private String title;
     private String body;
     private LocalDateTime sentAt = LocalDateTime.now(); // 보낸 시간
-    private String status; // 성공 / 실패 유무
+    private String status; // 성공(SUCCESS) 또는 실패(FAILED)
 
     public PushHistory() {}
 

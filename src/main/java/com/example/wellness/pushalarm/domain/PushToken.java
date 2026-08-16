@@ -11,7 +11,7 @@ import jakarta.persistence.UniqueConstraint;
 @Table(
     name = "push_tokens",
     uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"userId", "deviceId"}) // 유저 아이디 + 기기는 한개만 존재해야됨
+        @UniqueConstraint(columnNames = {"userId", "deviceId"}) // 유저 ID + 기기 ID 조합은 유일해야 함!
     }
 )
 public class PushToken {
@@ -33,6 +33,7 @@ public class PushToken {
         this.token = token;
     }
 
+    // --- Getter, Setter ---
     public Long getId() { return id; }
     public String getUserId() { return userId; }
     public String getDeviceId() { return deviceId; }
