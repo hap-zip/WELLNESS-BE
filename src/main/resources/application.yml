@@ -29,3 +29,4 @@ wellness:
   persistent-signal:
     lookback-days: 7
     persistent-threshold-days: 4
+    worsening-threshold: 1.5

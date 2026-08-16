@@ -39,6 +39,18 @@ public class PersistentSignalController {
                 .toList();
     }
 
+    @Operation(
+            summary = "악화신호 검사 실행",
+            description = "최근 7일을 앞/뒤로 나눠 평균 통증 강도 상승폭을 비교하여 악화 신호를 검사합니다."
+    )
+    @GetMapping("/check-worsening")
+    public List<PersistentSignalResponse> checkWorsening(@RequestHeader("X-User-Id") Long userId) {
+        List<PersistentSignal> signals = persistentSignalService.checkWorseningSignals(userId);
+        return signals.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private PersistentSignalResponse toResponse(PersistentSignal signal) {
         return new PersistentSignalResponse(
                 signal.getId(),
