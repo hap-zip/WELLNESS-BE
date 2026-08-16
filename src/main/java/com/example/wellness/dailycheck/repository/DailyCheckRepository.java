@@ -18,7 +18,4 @@ public interface DailyCheckRepository extends JpaRepository<DailyCheck, Long> {
 
     List<DailyCheck> findAllByUserIdAndCheckDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
 
-    Collection<Object> findAllByUserIdAndDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
-
-    Optional<Object> findByUserIdAndDate(Long userId, LocalDate date);
-}
+    }
