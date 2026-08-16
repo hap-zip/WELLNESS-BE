@@ -1,0 +1,14 @@
+package com.example.wellness;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+@EnableJpaAuditing
+@SpringBootApplication
+public class WellnessApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(WellnessApplication.class, args);
+        SpringApplication.run(WellnessApplication.class, args);
+    }
+}
