@@ -22,3 +22,4 @@ public interface DailyCheckRepository extends JpaRepository<DailyCheck, Long> {
     List<Long> findAllDistinctUserIds();
 
 }
+
