@@ -160,6 +160,16 @@ public class PersistentSignalService {
         return newSignals;
     }
 
+    /**
+     * "무개선" 신호 검사 - 서진의 RoutineFeedback (effect_status) 필요.
+     * TODO: 서진 RoutineFeedback 브랜치 merge 후 구현.
+     *       routines.target_area와 daily_check_pain_areas.zone_id 값 체계 일치 여부 확인 필요.
+     */
+    public List<PersistentSignal> checkNoImprovementSignals(Long userId) {
+        throw new UnsupportedOperationException(
+                "무개선 신호 판정은 서진의 RoutineFeedback 연동 후 구현 예정입니다.");
+    }
+
     private String buildWorseningMessage(String zoneId, double earlyAvg, double lateAvg) {
         return String.format(
                 "%s 부위의 불편함이 최근 강해지고 있어요. (초반 평균 %.1f점 → 최근 평균 %.1f점, 표본 %d일 기준)",
