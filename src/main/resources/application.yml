@@ -30,3 +30,4 @@ wellness:
     lookback-days: 7
     persistent-threshold-days: 4
     worsening-threshold: 1.5
+    no-improvement-min-completions: 3

@@ -6,6 +6,8 @@ import com.example.wellness.wellnesschat.repository.PersistentSignalRepository;
 import com.example.wellness.dailycheck.entity.DailyCheck;
 import com.example.wellness.dailycheck.entity.DailyCheckPainArea;
 import com.example.wellness.dailycheck.repository.DailyCheckRepository;
+import com.example.wellness.dailyroutine.repository.DailyRoutineRepository;
+import com.example.wellness.feedback.repository.RoutineFeedbackRepository;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -21,8 +23,13 @@ class PersistentSignalServiceTest {
 
     private final DailyCheckRepository dailyCheckRepository = mock(DailyCheckRepository.class);
     private final PersistentSignalRepository persistentSignalRepository = mock(PersistentSignalRepository.class);
+    private final DailyRoutineRepository dailyRoutineRepository = mock(DailyRoutineRepository.class);
+    private final RoutineFeedbackRepository routineFeedbackRepository = mock(RoutineFeedbackRepository.class);
+
     private final PersistentSignalService service = new PersistentSignalService(
-            dailyCheckRepository, persistentSignalRepository, 7, 4, 1.5
+            dailyCheckRepository, persistentSignalRepository,
+            dailyRoutineRepository, routineFeedbackRepository,
+            7, 4, 1.5, 3
     );
 
     @Test
