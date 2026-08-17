@@ -24,6 +24,17 @@ public class RoutineFeedbackService {
                 .orElseThrow(() -> new IllegalArgumentException("루틴 기록을 찾을 수 없습니다."));
         if (!dailyRoutine.getUserId().equals(userId))
             throw new IllegalArgumentException("본인의 루틴에만 피드백을 남길 수 있습니다.");
+
+        if (request.getFeedbackType() == RoutineFeedbackEntity.FeedbackType.IMMEDIATE) {
+            if (dailyRoutine.getImmediateFeedbackId() != null)
+                throw new IllegalArgumentException("이미 즉시 피드백이 작성되었습니다.");
+        } else {
+            if (!Boolean.TRUE.equals(dailyRoutine.getIsCompleted()))
+                throw new IllegalArgumentException("완료된 루틴에만 효과 피드백을 남길 수 있습니다.");
+            if (dailyRoutine.getDelayedFeedbackId() != null)
+                throw new IllegalArgumentException("이미 효과 피드백이 작성되었습니다.");
+        }
+
         String finalMemo = null;
         if (request.getFeedbackType() == RoutineFeedbackEntity.FeedbackType.IMMEDIATE)
             finalMemo = request.getMemo();
