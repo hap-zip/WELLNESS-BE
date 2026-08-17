@@ -14,6 +14,7 @@ import com.example.wellness.exception.NotFoundException;
 import com.example.wellness.dailycheck.repository.DailyCheckRepository;
 import com.example.wellness.health.entity.HealthData;
 import com.example.wellness.health.repository.HealthDataRepository;
+import com.example.wellness.connectionview.service.PatternAnalysisService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +37,12 @@ public class DailyCheckService {
 
     private final DailyCheckRepository dailyCheckRepository;
     private final HealthDataRepository healthDataRepository;
+    private final PatternAnalysisService patternAnalysisService;
 
-    public DailyCheckService(DailyCheckRepository dailyCheckRepository, HealthDataRepository healthDataRepository) {
+    public DailyCheckService(DailyCheckRepository dailyCheckRepository, HealthDataRepository healthDataRepository, PatternAnalysisService patternAnalysisService) {
         this.dailyCheckRepository = dailyCheckRepository;
         this.healthDataRepository = healthDataRepository;
+        this.patternAnalysisService = patternAnalysisService;
     }
 
     @Transactional
@@ -50,6 +53,7 @@ public class DailyCheckService {
         dailyCheck.setCheckDate(checkDate);
         applyRequest(dailyCheck, request);
         DailyCheck saved = dailyCheckRepository.save(dailyCheck);
+        patternAnalysisService.analyzeUserPatterns(userId);
         return toResponse(saved);
     }
 
