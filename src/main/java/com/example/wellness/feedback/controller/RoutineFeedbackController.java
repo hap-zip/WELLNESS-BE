@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/routine-feedbacks")
+@RequestMapping("/api/routine-feedbacks")
 @RequiredArgsConstructor
 public class RoutineFeedbackController {
     private final RoutineFeedbackService feedbackService;

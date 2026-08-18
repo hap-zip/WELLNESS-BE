@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/connections")
+@RequestMapping("/api/connections")
 @RequiredArgsConstructor
 public class ConnectionController {
     private final ConnectionService connectionService;

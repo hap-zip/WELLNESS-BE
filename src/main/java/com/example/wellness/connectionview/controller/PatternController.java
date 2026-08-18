@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/patterns")
+@RequestMapping("/api/patterns")
 @RequiredArgsConstructor
 public class PatternController {
     private final PatternService patternService;

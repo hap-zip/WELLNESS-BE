@@ -66,4 +66,11 @@ public class PatternEntity {
 
     @Column(name = "analysis_end_date", nullable = false)
     private LocalDate analysisEndDate;
+
+    public void updatePattern(RelationDirection direction, PatternStatus status, LocalDate start, LocalDate end) {
+        this.relationDirection = direction;
+        this.status = status;
+        this.analysisStartDate = start;
+        this.analysisEndDate = end;
+    }
 }

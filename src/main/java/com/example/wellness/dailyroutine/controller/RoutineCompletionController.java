@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/routine-completions")
+@RequestMapping("/api/routine-completions")
 @RequiredArgsConstructor
 public class RoutineCompletionController {
     private final RoutineService routineService;

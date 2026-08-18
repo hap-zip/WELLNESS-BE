@@ -4,6 +4,8 @@ import com.example.wellness.dailycheck.entity.DailyCheck;
 import com.example.wellness.connectionview.entity.PatternEntity;
 import com.example.wellness.dailycheck.repository.DailyCheckRepository;
 import com.example.wellness.connectionview.repository.PatternRepository;
+import com.example.wellness.health.entity.HealthData;
+import com.example.wellness.health.repository.HealthDataRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,22 +19,50 @@ import java.util.stream.Collectors;
 public class PatternAnalysisService {
     private final DailyCheckRepository dailyCheckRepository;
     private final PatternRepository patternRepository;
+    private final HealthDataRepository healthDataRepository;
 
     @Transactional
     public void analyzeUserPatterns(Long userId) {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(30);
         List<DailyCheck> records = dailyCheckRepository.findAllByUserIdAndCheckDateBetween(userId, startDate, endDate);
-        if (records.size() < 30) return;
+        if (records.size() < 20) return;
+        List<HealthData> healthDataList = healthDataRepository.findAllByUserIdAndRecordDateBetween(userId, startDate, endDate);
+        Map<LocalDate, HealthData> healthDataMap = healthDataList.stream()
+                .collect(Collectors.toMap(HealthData::getRecordDate, h -> h));
         List<PatternEntity> discoveredPatterns = new ArrayList<>();
-        Map<String, Function<DailyCheck, Number>> numericMetrics = getNumericMetrics(records);
+        Map<String, Function<DailyCheck, Number>> numericMetrics = getNumericMetrics(records, healthDataMap);
         Map<String, Function<DailyCheck, String>> categoricalMetrics = getCategoricalMetrics();
-
         discoveredPatterns.addAll(analyzeAssociations(userId, records, numericMetrics, startDate, endDate));
         discoveredPatterns.addAll(analyzeConditions(userId, records, categoricalMetrics, numericMetrics, startDate, endDate));
-        if (!discoveredPatterns.isEmpty())
-            patternRepository.saveAll(discoveredPatterns);
+        List<PatternEntity> existingPatterns = patternRepository.findAllByUserId(userId);
+        Map<String, PatternEntity> existingMap = existingPatterns.stream()
+                .collect(Collectors.toMap(
+                        p -> p.getPatternType().name() + "_" + p.getSourceMetric() + "_" + p.getTargetMetric(),
+                        p -> p
+                ));
+        List<PatternEntity> patternsToSave = new ArrayList<>();
+        for (PatternEntity discovered : discoveredPatterns) {
+            String key = discovered.getPatternType().name() + "_" + discovered.getSourceMetric() + "_" + discovered.getTargetMetric();
+            if (existingMap.containsKey(key)) {
+                PatternEntity existing = existingMap.get(key);
+                existing.updatePattern(
+                        discovered.getRelationDirection(),
+                        discovered.getStatus(),
+                        discovered.getAnalysisStartDate(),
+                        discovered.getAnalysisEndDate()
+                );
+                patternsToSave.add(existing);
+                existingMap.remove(key);
+            } else
+                patternsToSave.add(discovered);
+        }
+        if (!existingMap.isEmpty())
+            patternRepository.deleteAll(existingMap.values());
+        if (!patternsToSave.isEmpty())
+            patternRepository.saveAll(patternsToSave);
     }
+
     private List<PatternEntity> analyzeAssociations(Long userId, List<DailyCheck> records, Map<String, Function<DailyCheck, Number>> numericMetrics, LocalDate startDate, LocalDate endDate) {
         List<PatternEntity> patterns = new ArrayList<>();
         List<String> keys = new ArrayList<>(numericMetrics.keySet());
@@ -50,7 +80,7 @@ public class PatternAnalysisService {
                         yValues.add(y.doubleValue());
                     }
                 }
-                if (xValues.size() < 30) continue;
+                if (xValues.size() < 20) continue;
                 double correlation = calculatePearsonCorrelation(xValues, yValues);
                 if (Math.abs(correlation) >= 0.5) {
                     PatternEntity.RelationDirection direction = correlation > 0
@@ -63,6 +93,7 @@ public class PatternAnalysisService {
         }
         return patterns;
     }
+
     private List<PatternEntity> analyzeConditions(Long userId, List<DailyCheck> records, Map<String, Function<DailyCheck, String>> categoricalMetrics,
                                                   Map<String, Function<DailyCheck, Number>> numericMetrics, LocalDate startDate, LocalDate endDate) {
         List<PatternEntity> patterns = new ArrayList<>();
@@ -81,7 +112,7 @@ public class PatternAnalysisService {
                 for (Map.Entry<String, List<DailyCheck>> entry : grouped.entrySet()) {
                     String categoryValue = entry.getKey();
                     List<DailyCheck> subset = entry.getValue();
-                    if (subset.size() < 30) continue;
+                    if (subset.size() < 20) continue;
                     double subsetAvg = subset.stream()
                             .map(numericMetrics.get(numKey))
                             .mapToDouble(Number::doubleValue)
@@ -100,11 +131,20 @@ public class PatternAnalysisService {
         }
         return patterns;
     }
-    private Map<String, Function<DailyCheck, Number>> getNumericMetrics(List<DailyCheck> records) {
+
+    private Map<String, Function<DailyCheck, Number>> getNumericMetrics(List<DailyCheck> records, Map<LocalDate, HealthData> healthDataMap) {
         Map<String, Function<DailyCheck, Number>> map = new HashMap<>();
-        map.put("sleep_duration", DailyCheck::getAutoSleepDurationMinutes);
+        map.put("sleep_duration", dc -> {
+            if (dc.getAutoSleepDurationMinutes() != null) return dc.getAutoSleepDurationMinutes();
+            HealthData hd = healthDataMap.get(dc.getCheckDate());
+            return hd != null ? hd.getSleepDurationMinutes() : null;
+        });
         map.put("sleep_satisfaction", DailyCheck::getSleepSatisfaction);
-        map.put("auto_steps", DailyCheck::getAutoSteps);
+        map.put("auto_steps", dc -> {
+            if (dc.getAutoSteps() != null) return dc.getAutoSteps();
+            HealthData hd = healthDataMap.get(dc.getCheckDate());
+            return hd != null ? hd.getSteps() : null;
+        });
         Set<String> allPainAreas = records.stream()
                 .filter(dc -> dc.getPainAreas() != null)
                 .flatMap(dc -> dc.getPainAreas().stream())
@@ -123,6 +163,7 @@ public class PatternAnalysisService {
         }
         return map;
     }
+
     private Map<String, Function<DailyCheck, String>> getCategoricalMetrics() {
         Map<String, Function<DailyCheck, String>> map = new HashMap<>();
         map.put("condition", dc -> dc.getCondition() != null ? dc.getCondition().name() : null);
@@ -130,6 +171,7 @@ public class PatternAnalysisService {
         map.put("pillow_height", DailyCheck::getSleepPillow);
         return map;
     }
+
     private String generatePatternName(String source, String target, PatternEntity.PatternType type, PatternEntity.RelationDirection direction) {
         String sourceName = translateMetricName(source);
         String targetName = translateMetricName(target);
@@ -146,6 +188,7 @@ public class PatternAnalysisService {
             return sourceName + " 감소 시 " + targetName + " 증가";
         }
     }
+
     private String translateMetricName(String metric) {
         if (metric.startsWith("pain_")) {
             String zoneId = metric.replace("pain_", "");
@@ -186,6 +229,7 @@ public class PatternAnalysisService {
             default -> metric;
         };
     }
+
     private PatternEntity createPatternEntity(Long userId, String source, String target, PatternEntity.PatternType type,
                                               PatternEntity.RelationDirection direction, PatternEntity.PatternStatus status,
                                               LocalDate start, LocalDate end) {
@@ -202,11 +246,13 @@ public class PatternAnalysisService {
                 .analysisEndDate(end)
                 .build();
     }
+
     private PatternEntity.PatternStatus determineStatus(int count) {
         if (count < 5) return PatternEntity.PatternStatus.INSUFFICIENT;
         if (count < 14) return PatternEntity.PatternStatus.POSSIBLE;
         return PatternEntity.PatternStatus.CONFIRMED;
     }
+
     private double calculatePearsonCorrelation(List<Double> x, List<Double> y) {
         int n = x.size();
         double sumX = 0, sumY = 0, sumXY = 0, sumSqX = 0, sumSqY = 0;
