@@ -16,9 +16,16 @@ import java.time.DateTimeException;
 
 /**
  * 예외마다 별도 핸들러 + 고유 ErrorCode를 매핑해 어떤 상황인지 응답만 보고 구분할 수 있게 함.
- * wellnessdailyexpert 패키지 컨트롤러에만 적용되도록 스코프 제한 — wellnesschat은 스프링 기본 처리를 그대로 쓴다.
+ * dailycheck/expertcard/health/login 컨트롤러에만 적용되도록 스코프 제한 — wellnesschat은 스프링 기본 처리를 그대로 쓴다.
+ * (예전 패키지명 com.example.wellnesschatbackend.wellnessdailyexpert 기준으로 스코프가 걸려있었는데,
+ *  패키지가 com.example.wellness.*로 리네임되면서 안 맞게 된 걸 여기서 같이 바로잡음)
  */
-@RestControllerAdvice(basePackages = "com.example.wellnesschatbackend.wellnessdailyexpert")
+@RestControllerAdvice(basePackages = {
+        "com.example.wellness.dailycheck",
+        "com.example.wellness.expertcard",
+        "com.example.wellness.health",
+        "com.example.wellness.login"
+})
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -84,6 +91,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleDateTimeException(DateTimeException exception) {
         return ResponseEntity.status(ErrorCode.INVALID_ARGUMENT.getStatus())
                 .body(new ApiError(ErrorCode.INVALID_ARGUMENT.name(), "날짜 값이 올바르지 않아요: " + exception.getMessage()));
+    }
+
+    /** 로그인 토큰이 없거나 무효해서 @CurrentUserId를 못 채운 경우 */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiError> handleUnauthorized(UnauthorizedException exception) {
+        ErrorCode code = exception.getErrorCode();
+        return ResponseEntity.status(code.getStatus()).body(new ApiError(code.name(), exception.getMessage()));
     }
 
     /** 위에서 못 잡은 나머지 — 스택트레이스가 그대로 응답에 새는 것만 막는 최후의 방어선 */

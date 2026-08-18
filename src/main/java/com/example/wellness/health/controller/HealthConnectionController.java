@@ -3,11 +3,11 @@ package com.example.wellness.health.controller;
 import com.example.wellness.health.dto.request.HealthConnectionRequest;
 import com.example.wellness.health.dto.response.HealthConnectionResponse;
 import com.example.wellness.health.service.HealthConnectionService;
+import com.example.wellness.login.security.CurrentUserId;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,12 +24,12 @@ public class HealthConnectionController {
     }
 
     @GetMapping
-    public HealthConnectionResponse get(@RequestHeader("X-User-Id") Long userId) {
+    public HealthConnectionResponse get(@CurrentUserId Long userId) {
         return healthConnectionService.get(userId);
     }
 
     @PutMapping
-    public HealthConnectionResponse save(@RequestHeader("X-User-Id") Long userId, @Valid @RequestBody HealthConnectionRequest request) {
+    public HealthConnectionResponse save(@CurrentUserId Long userId, @Valid @RequestBody HealthConnectionRequest request) {
         return healthConnectionService.save(userId, request);
     }
 }

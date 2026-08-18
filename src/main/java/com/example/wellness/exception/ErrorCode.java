@@ -10,6 +10,7 @@ public enum ErrorCode {
     MALFORMED_REQUEST_BODY(HttpStatus.BAD_REQUEST),
     TYPE_MISMATCH(HttpStatus.BAD_REQUEST),
     MISSING_HEADER(HttpStatus.BAD_REQUEST),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final HttpStatus status;
