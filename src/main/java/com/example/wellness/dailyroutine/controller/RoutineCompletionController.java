@@ -2,6 +2,7 @@ package com.example.wellness.dailyroutine.controller;
 
 import com.example.wellness.dailyroutine.dto.RoutineDTO.CompletionResponse;
 import com.example.wellness.dailyroutine.service.RoutineService;
+import com.example.wellness.login.security.CurrentUserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +17,13 @@ public class RoutineCompletionController {
     private final RoutineService routineService;
 
     @PostMapping
-    public ResponseEntity<Void> completeRoutine(@RequestParam Long userId, @RequestParam Long dailyRoutineId) {
+    public ResponseEntity<Void> completeRoutine(@CurrentUserId Long userId, @RequestParam Long dailyRoutineId) {
         routineService.completeRoutine(dailyRoutineId, userId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<CompletionResponse>> getCompletionsByPeriod(@RequestParam Long userId,
+    public ResponseEntity<List<CompletionResponse>> getCompletionsByPeriod(@CurrentUserId Long userId,
                                                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(routineService.getCompletionsByPeriod(userId, startDate, endDate));
