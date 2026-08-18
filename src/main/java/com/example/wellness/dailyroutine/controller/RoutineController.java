@@ -2,18 +2,19 @@ package com.example.wellness.dailyroutine.controller;
 
 import com.example.wellness.dailyroutine.dto.RoutineDTO.*;
 import com.example.wellness.dailyroutine.service.RoutineService;
+import com.example.wellness.login.security.CurrentUserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/routines")
+@RequestMapping("/api/routines")
 @RequiredArgsConstructor
 public class RoutineController {
     private final RoutineService routineService;
 
     @GetMapping("/today")
-    public ResponseEntity<TodayRoutineResponse> getTodayRoutine(@RequestParam Long userId) {
+    public ResponseEntity<TodayRoutineResponse> getTodayRoutine(@CurrentUserId Long userId) {
         return ResponseEntity.ok(routineService.getTodayRoutine(userId));
     }
 
