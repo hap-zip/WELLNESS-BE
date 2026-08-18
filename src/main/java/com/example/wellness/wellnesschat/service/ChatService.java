@@ -47,8 +47,8 @@ public class ChatService {
         this.guardrailEnabled = guardrailEnabled;
     }
 
-    public ChatResponse reply(ChatRequest request) {
-        List<DailyCheck> checks = dailyCheckProvider.getRecentChecks(request.userId(), lookbackDays);
+    public ChatResponse reply(Long userId, ChatRequest request) {
+        List<DailyCheck> checks = dailyCheckProvider.getRecentChecks(userId, lookbackDays);
         String systemPrompt = promptBuilder.buildSystemPrompt(checks);
         String rawReply = openAiClient.chat(systemPrompt, request.message());
 
@@ -56,26 +56,26 @@ public class ChatService {
         LocalDate contextStart = checks.isEmpty() ? LocalDate.now() : checks.get(checks.size() - 1).date();
 
         if (!guardrailEnabled) {
-            saveChat(request, rawReply, contextStart, contextEnd, false);
+            saveChat(userId, request, rawReply, contextStart, contextEnd, false);
             return new ChatResponse(rawReply, true, List.of());
         }
 
         GuardrailResult result = guardrailService.validate(rawReply);
         if (!result.passed()) {
             log.warn("가드레일 위반 감지, 안전 문구로 대체함. userId={}, violations={}",
-                    request.userId(), result.violations());
-            saveChat(request, SAFE_FALLBACK_REPLY, contextStart, contextEnd, true);
+                    userId, result.violations());
+            saveChat(userId, request, SAFE_FALLBACK_REPLY, contextStart, contextEnd, true);
             return new ChatResponse(SAFE_FALLBACK_REPLY, false, result.violations());
         }
 
-        saveChat(request, rawReply, contextStart, contextEnd, false);
+        saveChat(userId, request, rawReply, contextStart, contextEnd, false);
         return new ChatResponse(rawReply, true, List.of());
     }
 
-    private void saveChat(ChatRequest request, String responseText,
+    private void saveChat(Long userId, ChatRequest request, String responseText,
                           LocalDate contextStart, LocalDate contextEnd, boolean guardrailFlag) {
         WellnessChat chat = new WellnessChat();
-        chat.setUserId(request.userId());
+        chat.setUserId(userId);
         chat.setMessage(request.message());
         chat.setResponse(responseText);
         chat.setContextPeriodStart(contextStart);
