@@ -8,6 +8,7 @@ import com.example.wellness.dailycheck.entity.DailyCheckPainArea;
 import com.example.wellness.dailycheck.repository.DailyCheckRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ public class PersistentSignalService {
      * 특정 유저에 대해 "지속" 신호를 검사하고, 조건 충족 시 새 신호를 저장한다.
      * 이미 해소 안 된 같은 부위 신호가 있으면 중복 생성하지 않는다.
      */
+    @Transactional
     public List<PersistentSignal> checkPersistentSignals(Long userId) {
         LocalDate end = LocalDate.now();
         LocalDate start = end.minusDays(lookbackDays - 1L);
@@ -99,6 +101,7 @@ public class PersistentSignalService {
      * 특정 유저에 대해 "악화" 신호를 검사하고, 조건 충족 시 새 신호를 저장한다.
      * 최근 7일을 앞 절반/뒤 절반으로 나눠 평균 intensity 상승폭을 비교한다.
      */
+    @Transactional
     public List<PersistentSignal> checkWorseningSignals(Long userId) {
         LocalDate end = LocalDate.now();
         LocalDate start = end.minusDays(lookbackDays - 1L);

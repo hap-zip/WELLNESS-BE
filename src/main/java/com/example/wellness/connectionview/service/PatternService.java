@@ -21,9 +21,12 @@ public class PatternService {
                 .collect(Collectors.toList());
     }
 
-    public PatternResponse getPatternDetail(Long patternId) {
+    public PatternResponse getPatternDetail(Long userId, Long patternId) {
         PatternEntity pattern = patternRepository.findById(patternId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 패턴을 찾을 수 없습니다. ID: " + patternId));
+        if (!pattern.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("본인 소유의 패턴만 조회할 수 있습니다.");
+        }
         return PatternResponse.from(pattern);
     }
 }
