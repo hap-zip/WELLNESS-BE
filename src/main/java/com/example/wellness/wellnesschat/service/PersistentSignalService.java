@@ -178,6 +178,7 @@ public class PersistentSignalService {
      * 최근 lookbackDays일 내 같은 부위 루틴을 noImprovementMinCompletions회 이상 완료했는데
      * IMPROVED 피드백이 하나도 없으면 신호를 발생시킨다.
      */
+    @Transactional
     public List<PersistentSignal> checkNoImprovementSignals(Long userId) {
         LocalDate end = LocalDate.now();
         LocalDate start = end.minusDays(lookbackDays - 1L);

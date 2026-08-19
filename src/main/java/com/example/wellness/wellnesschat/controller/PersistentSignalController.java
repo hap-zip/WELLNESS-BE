@@ -54,7 +54,7 @@ public class PersistentSignalController {
                     + "무개선 신호를 검사하고 저장합니다."
     )
     @GetMapping("/check-no-improvement")
-    public List<PersistentSignalResponse> checkNoImprovement(@RequestHeader("X-User-Id") Long userId) {
+    public List<PersistentSignalResponse> checkNoImprovement(@CurrentUserId Long userId) {
         List<PersistentSignal> signals = persistentSignalService.checkNoImprovementSignals(userId);
         return signals.stream()
                 .map(this::toResponse)
