@@ -6,43 +6,56 @@ import com.example.wellness.wellnesschat.repository.PersistentSignalRepository;
 import com.example.wellness.dailycheck.entity.DailyCheck;
 import com.example.wellness.dailycheck.entity.DailyCheckPainArea;
 import com.example.wellness.dailycheck.repository.DailyCheckRepository;
+import com.example.wellness.dailyroutine.entity.DailyRoutineEntity;
+import com.example.wellness.dailyroutine.repository.DailyRoutineRepository;
+import com.example.wellness.feedback.entity.RoutineFeedbackEntity;
+import com.example.wellness.feedback.repository.RoutineFeedbackRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
- * daily_check_pain_areas 기록을 근거로 지속신호(persistent_signals)를 판정하는 규칙 엔진.
- * AI API 불필요, 순수 규칙 기반.
+ * daily_check_pain_areas / daily_routines / routine_feedbacks 기록을 근거로
+ * 지속신호(persistent_signals)를 판정하는 규칙 엔진. AI API 불필요, 순수 규칙 기반.
  *
- * 지금은 "지속(PERSISTENT)" 유형만 구현. 악화/무개선은 다음 단계.
+ * 지속(PERSISTENT) / 악화(WORSENING) / 무개선(NO_IMPROVEMENT) 3가지 유형 모두 구현.
  */
 @Service
 public class PersistentSignalService {
 
     private final DailyCheckRepository dailyCheckRepository;
     private final PersistentSignalRepository persistentSignalRepository;
+    private final DailyRoutineRepository dailyRoutineRepository;
+    private final RoutineFeedbackRepository routineFeedbackRepository;
     private final int lookbackDays;
     private final int persistentThresholdDays;
     private final double worseningThreshold;
+    private final int noImprovementMinCompletions;
 
     public PersistentSignalService(
             DailyCheckRepository dailyCheckRepository,
             PersistentSignalRepository persistentSignalRepository,
+            DailyRoutineRepository dailyRoutineRepository,
+            RoutineFeedbackRepository routineFeedbackRepository,
             @Value("${wellness.persistent-signal.lookback-days:7}") int lookbackDays,
             @Value("${wellness.persistent-signal.persistent-threshold-days:4}") int persistentThresholdDays,
-            @Value("${wellness.persistent-signal.worsening-threshold:1.5}") double worseningThreshold
+            @Value("${wellness.persistent-signal.worsening-threshold:1.5}") double worseningThreshold,
+            @Value("${wellness.persistent-signal.no-improvement-min-completions:3}") int noImprovementMinCompletions
     ) {
         this.dailyCheckRepository = dailyCheckRepository;
         this.persistentSignalRepository = persistentSignalRepository;
+        this.dailyRoutineRepository = dailyRoutineRepository;
+        this.routineFeedbackRepository = routineFeedbackRepository;
         this.lookbackDays = lookbackDays;
         this.persistentThresholdDays = persistentThresholdDays;
         this.worseningThreshold = worseningThreshold;
+        this.noImprovementMinCompletions = noImprovementMinCompletions;
     }
 
     /**
@@ -57,7 +70,6 @@ public class PersistentSignalService {
         List<DailyCheck> checks = dailyCheckRepository
                 .findByUserIdAndCheckDateBetweenOrderByCheckDateAsc(userId, start, end);
 
-        // zoneId별로 등장한 날짜 수 카운트
         Map<String, Integer> zoneDayCount = new HashMap<>();
         for (DailyCheck check : checks) {
             for (DailyCheckPainArea area : check.getPainAreas()) {
@@ -65,7 +77,7 @@ public class PersistentSignalService {
             }
         }
 
-        List<PersistentSignal> newSignals = new java.util.ArrayList<>();
+        List<PersistentSignal> newSignals = new ArrayList<>();
 
         for (Map.Entry<String, Integer> entry : zoneDayCount.entrySet()) {
             String zoneId = entry.getKey();
@@ -75,7 +87,6 @@ public class PersistentSignalService {
                 continue;
             }
 
-            // 이미 활성화(미해소)된 같은 부위·같은 유형 신호가 있으면 건너뜀 (중복 방지)
             boolean alreadyActive = persistentSignalRepository
                     .findByUserIdAndPainAreaAndTriggerTypeAndResolvedAtIsNull(userId, zoneId, TriggerType.PERSISTENT)
                     .isPresent();
@@ -112,7 +123,6 @@ public class PersistentSignalService {
         int half = lookbackDays / 2;
         LocalDate midPoint = start.plusDays(half);
 
-        // zoneId별로 앞 절반 / 뒤 절반 intensity 리스트 모으기
         Map<String, List<Integer>> earlyByZone = new HashMap<>();
         Map<String, List<Integer>> lateByZone = new HashMap<>();
 
@@ -131,7 +141,7 @@ public class PersistentSignalService {
             List<Integer> lateValues = lateByZone.get(zoneId);
 
             if (earlyValues.isEmpty() || lateValues.isEmpty()) {
-                continue; // 비교할 앞 구간 데이터가 없으면 판정 불가
+                continue;
             }
 
             double earlyAvg = earlyValues.stream().mapToInt(Integer::intValue).average().orElse(0);
@@ -164,13 +174,77 @@ public class PersistentSignalService {
     }
 
     /**
-     * "무개선" 신호 검사 - 서진의 RoutineFeedback (effect_status) 필요.
-     * TODO: 서진 RoutineFeedback 브랜치 merge 후 구현.
-     *       routines.target_area와 daily_check_pain_areas.zone_id 값 체계 일치 여부 확인 필요.
+     * 특정 유저에 대해 "무개선" 신호를 검사하고, 조건 충족 시 새 신호를 저장한다.
+     * 최근 lookbackDays일 내 같은 부위 루틴을 noImprovementMinCompletions회 이상 완료했는데
+     * IMPROVED 피드백이 하나도 없으면 신호를 발생시킨다.
      */
     public List<PersistentSignal> checkNoImprovementSignals(Long userId) {
-        throw new UnsupportedOperationException(
-                "무개선 신호 판정은 서진의 RoutineFeedback 연동 후 구현 예정입니다.");
+        LocalDate end = LocalDate.now();
+        LocalDate start = end.minusDays(lookbackDays - 1L);
+
+        List<DailyRoutineEntity> completedRoutines = dailyRoutineRepository
+                .findAllByUserIdAndIsCompletedTrueAndTargetDateBetween(userId, start, end);
+
+        Map<String, List<DailyRoutineEntity>> byArea = new HashMap<>();
+        for (DailyRoutineEntity dr : completedRoutines) {
+            String area = dr.getRoutine().getTargetArea();
+            byArea.computeIfAbsent(area, k -> new ArrayList<>()).add(dr);
+        }
+
+        List<PersistentSignal> newSignals = new ArrayList<>();
+
+        for (Map.Entry<String, List<DailyRoutineEntity>> entry : byArea.entrySet()) {
+            String area = entry.getKey();
+            List<DailyRoutineEntity> routines = entry.getValue();
+
+            if (routines.size() < noImprovementMinCompletions) {
+                continue;
+            }
+
+            boolean anyImproved = routines.stream().anyMatch(this::hasImprovedFeedback);
+            if (anyImproved) {
+                continue;
+            }
+
+            boolean alreadyActive = persistentSignalRepository
+                    .findByUserIdAndPainAreaAndTriggerTypeAndResolvedAtIsNull(userId, area, TriggerType.NO_IMPROVEMENT)
+                    .isPresent();
+            if (alreadyActive) {
+                continue;
+            }
+
+            PersistentSignal signal = new PersistentSignal();
+            signal.setUserId(userId);
+            signal.setPainArea(area);
+            signal.setTriggerType(TriggerType.NO_IMPROVEMENT);
+            signal.setStreakDays(routines.size());
+            signal.setMessageSent(buildNoImprovementMessage(area, routines.size()));
+            signal.setUserAcknowledged(false);
+
+            newSignals.add(persistentSignalRepository.save(signal));
+        }
+
+        return newSignals;
+    }
+
+    private boolean hasImprovedFeedback(DailyRoutineEntity dr) {
+        return isImproved(dr.getImmediateFeedbackId()) || isImproved(dr.getDelayedFeedbackId());
+    }
+
+    private boolean isImproved(Long feedbackId) {
+        if (feedbackId == null) {
+            return false;
+        }
+        return routineFeedbackRepository.findById(feedbackId)
+                .map(f -> f.getEffectStatus() == RoutineFeedbackEntity.EffectStatus.IMPROVED)
+                .orElse(false);
+    }
+
+    private String buildNoImprovementMessage(String area, int completionCount) {
+        return String.format(
+                "%s 관련 루틴을 %d회 수행했지만 아직 뚜렷한 개선이 없어요. (표본 %d회 기준)",
+                area, completionCount, completionCount
+        );
     }
 
     private String buildWorseningMessage(String zoneId, double earlyAvg, double lateAvg) {

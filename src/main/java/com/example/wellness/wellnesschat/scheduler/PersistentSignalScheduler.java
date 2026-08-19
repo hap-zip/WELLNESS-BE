@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * 매일 정해진 시각에 전체 유저를 순회하며 지속신호(persistent_signals)를 판정하는 스케줄러.
- * "지속"/"악화" 유형만 검사. "무개선"은 서진 RoutineFeedback 연동 후 추가 예정.
+ * "지속"/"악화"/"무개선" 3가지 유형 모두 검사.
  */
 @Slf4j
 @Component
@@ -30,6 +30,7 @@ public class PersistentSignalScheduler {
             try {
                 persistentSignalService.checkPersistentSignals(userId);
                 persistentSignalService.checkWorseningSignals(userId);
+                persistentSignalService.checkNoImprovementSignals(userId);
             } catch (Exception e) {
                 // 한 유저 처리 중 오류가 나도 나머지 유저 처리는 계속되도록 격리
                 log.error("유저 {} 지속신호 판정 중 오류 발생", userId, e);
