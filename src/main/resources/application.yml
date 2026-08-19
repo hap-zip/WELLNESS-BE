@@ -8,7 +8,11 @@ spring:
     url: jdbc:mysql://localhost:3306/wellness?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+  sql:
+    init:
+      mode: always
   jpa:
+    defer-datasource-initialization: true
     hibernate:
       # 개발 중에는 엔티티 기준으로 테이블 자동 생성. 운영 배포 전 Flyway/Liquibase 마이그레이션 + validate로 전환 필요.
       ddl-auto: update
