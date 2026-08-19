@@ -62,7 +62,13 @@ public class AuthController {
 
         // 로그인 성공 시. 이후 모든 API 호출은 이 토큰을 Authorization: Bearer <token>으로 실어 보내면 됨.
         String accessToken = jwtService.generateToken(user.getId(), user.getEmail());
-        return ResponseEntity.ok(Map.of("accessToken", accessToken, "message", "로그인 성공"));
+        return ResponseEntity.ok(Map.of(
+                "accessToken", accessToken,
+                "userId", user.getId(),
+                "email", user.getEmail(),
+                "name", user.getName(),
+                "message", "로그인 성공"
+        ));
     }
 
     @PostMapping("/withdraw")
