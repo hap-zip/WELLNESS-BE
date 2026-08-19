@@ -48,6 +48,19 @@ public class PersistentSignalController {
                 .toList();
     }
 
+    @Operation(
+            summary = "무개선신호 검사 실행",
+            description = "최근 7일 내 같은 부위 루틴을 3회 이상 완료했지만 개선 피드백(IMPROVED)이 하나도 없으면 "
+                    + "무개선 신호를 검사하고 저장합니다."
+    )
+    @GetMapping("/check-no-improvement")
+    public List<PersistentSignalResponse> checkNoImprovement(@CurrentUserId Long userId) {
+        List<PersistentSignal> signals = persistentSignalService.checkNoImprovementSignals(userId);
+        return signals.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private PersistentSignalResponse toResponse(PersistentSignal signal) {
         return new PersistentSignalResponse(
                 signal.getId(),
