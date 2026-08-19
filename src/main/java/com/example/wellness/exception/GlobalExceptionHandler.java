@@ -1,6 +1,7 @@
 package com.example.wellness.exception;
 
 import com.example.wellness.wellnesschat.controller.ChatController;
+import com.example.wellness.wellnesschat.controller.PersistentSignalController;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,17 +20,20 @@ import java.time.DateTimeException;
  * 예외마다 별도 핸들러 + 고유 ErrorCode를 매핑해 어떤 상황인지 응답만 보고 구분할 수 있게 함.
  * dailycheck/expertcard/health/login 컨트롤러에만 적용되도록 스코프 제한 — wellnesschat 패키지 전체는
  * 스프링 기본 처리를 그대로 쓴다 (PersistentSignalController 등 다른 팀원 코드에 영향 안 주려고).
- * 단, ChatController는 @CurrentUserId 인증을 새로 붙이면서 UnauthorizedException(401)을 던지게 됐는데
- * 그대로 두면 스프링 기본 처리가 500으로 잘못 응답하므로, assignableTypes로 이 컨트롤러 하나만 추가 포함.
- * (예전 패키지명 com.example.wellnesschatbackend.wellnessdailyexpert 기준으로 스코프가 걸려있었는데,
- *  패키지가 com.example.wellness.*로 리네임되면서 안 맞게 된 걸 여기서 같이 바로잡음)
+ * 단, ChatController/PersistentSignalController는 X-User-Id 대신 @CurrentUserId
+ * 인증으로 바뀌면서
+ * UnauthorizedException(401)을 던지게 됐는데, 그대로 두면 스프링 기본 처리가 500으로 잘못 응답하므로
+ * assignableTypes로 이 두 컨트롤러만 추가 포함.
+ * (예전 패키지명 com.example.wellnesschatbackend.wellnessdailyexpert 기준으로 스코프가
+ * 걸려있었는데,
+ * 패키지가 com.example.wellness.*로 리네임되면서 안 맞게 된 걸 여기서 같이 바로잡음)
  */
 @RestControllerAdvice(basePackages = {
         "com.example.wellness.dailycheck",
         "com.example.wellness.expertcard",
         "com.example.wellness.health",
         "com.example.wellness.login"
-}, assignableTypes = ChatController.class)
+}, assignableTypes = { ChatController.class, PersistentSignalController.class })
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -79,7 +83,7 @@ public class GlobalExceptionHandler {
                 .body(new ApiError(ErrorCode.TYPE_MISMATCH.name(), message, exception.getName()));
     }
 
-    /** 필수 @RequestHeader(예: X-User-Id) 누락. 안 잡으면 catch-all에 걸려 500으로 잘못 나간다. */
+    /** 필수 @RequestHeader(예: X-User-Id) 누락. 안 잡으면 catch-all에 걸려 500으로 잘못 나가버림. */
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<ApiError> handleMissingHeader(MissingRequestHeaderException exception) {
         String message = exception.getHeaderName() + " 헤더가 필요해요.";
@@ -89,7 +93,7 @@ public class GlobalExceptionHandler {
 
     /**
      * LocalDate.parse(문자열 형식 오류)와 LocalDate.of(month=13 같은 범위 오류) 둘 다 이 예외의 하위 타입이라
-     * 한 핸들러로 같이 잡는다. 안 잡으면 catch-all에 걸려 500으로 잘못 나간다.
+     * -> 같이 잡음, 안 잡으면 catch-all에 걸려 500으로 잘못 나가버림.
      */
     @ExceptionHandler(DateTimeException.class)
     public ResponseEntity<ApiError> handleDateTimeException(DateTimeException exception) {
