@@ -9,12 +9,17 @@ import com.example.wellness.dailycheck.enums.AutoSource;
 import com.example.wellness.dailycheck.enums.BodyView;
 import com.example.wellness.dailycheck.enums.Condition;
 import com.example.wellness.dailycheck.enums.SleepPosture;
+import com.example.wellness.dailyroutine.entity.RoutineEntity;
 import com.example.wellness.exception.ErrorCode;
 import com.example.wellness.exception.NotFoundException;
 import com.example.wellness.dailycheck.repository.DailyCheckRepository;
 import com.example.wellness.health.entity.HealthData;
 import com.example.wellness.health.repository.HealthDataRepository;
 import com.example.wellness.connectionview.service.PatternAnalysisService;
+import com.example.wellness.dailyroutine.entity.DailyRoutineEntity;
+import com.example.wellness.dailyroutine.repository.DailyRoutineRepository;
+import com.example.wellness.dailyroutine.repository.RoutineRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,11 +43,16 @@ public class DailyCheckService {
     private final DailyCheckRepository dailyCheckRepository;
     private final HealthDataRepository healthDataRepository;
     private final PatternAnalysisService patternAnalysisService;
+    private final RoutineRepository routineRepository;
+    private final DailyRoutineRepository dailyRoutineRepository;
 
-    public DailyCheckService(DailyCheckRepository dailyCheckRepository, HealthDataRepository healthDataRepository, PatternAnalysisService patternAnalysisService) {
+    public DailyCheckService(DailyCheckRepository dailyCheckRepository, HealthDataRepository healthDataRepository,
+                             PatternAnalysisService patternAnalysisService, RoutineRepository routineRepository, DailyRoutineRepository dailyRoutineRepository) {
         this.dailyCheckRepository = dailyCheckRepository;
         this.healthDataRepository = healthDataRepository;
         this.patternAnalysisService = patternAnalysisService;
+        this.routineRepository = routineRepository;
+        this.dailyRoutineRepository = dailyRoutineRepository;
     }
 
     @Transactional
@@ -54,7 +64,30 @@ public class DailyCheckService {
         applyRequest(dailyCheck, request);
         DailyCheck saved = dailyCheckRepository.save(dailyCheck);
         patternAnalysisService.analyzeUserPatterns(userId);
+        createRoutineIfPainAreaExists(userId, checkDate, request);
         return toResponse(saved);
+    }
+
+    private void createRoutineIfPainAreaExists(Long userId, LocalDate checkDate, DailyCheckRequest request) {
+        if (request.discomfort() != null && request.discomfort().areas() != null && !request.discomfort().areas().isEmpty()) {
+            var firstArea = request.discomfort().areas().get(0);
+            String view = firstArea.view().toLowerCase();
+            String zoneId = firstArea.zoneId().toLowerCase();
+            String combinedTarget = view + "-" + zoneId;
+            boolean hasRoutine = dailyRoutineRepository.findByUserIdAndTargetDate(userId, checkDate).isPresent();
+            if (!hasRoutine) {
+                RoutineEntity matchedRoutine = routineRepository.findByTargetArea(combinedTarget)
+                        .orElseGet(() -> routineRepository.findByTargetArea(zoneId).orElse(null));
+                if (matchedRoutine != null) {
+                    DailyRoutineEntity dailyRoutine = DailyRoutineEntity.builder()
+                            .userId(userId)
+                            .routine(matchedRoutine)
+                            .targetDate(checkDate)
+                            .build();
+                    dailyRoutineRepository.save(dailyRoutine);
+                }
+            }
+        }
     }
 
     @Transactional(readOnly = true)
@@ -140,10 +173,6 @@ public class DailyCheckService {
         dailyCheck.setSkippedSteps(request.skippedSteps());
     }
 
-    /**
-     * health_data가 원본, daily_checks.auto_*는 유저가 값을 고쳤을 때만 채우는 덮어쓰기 필드다.
-     * 들어온 값이 health_data랑 같으면(안 고침) 비워두고, 다르면(고침) 그대로 저장한다.
-     */
     private void applyAutoRecord(DailyCheck dailyCheck, DailyCheckRequest request) {
         Integer sleepMinutes = request.autoRecords().sleepDurationMinutes();
         LocalTime bedtime = parseTime(request.autoRecords().bedtime());
@@ -170,7 +199,6 @@ public class DailyCheckService {
         }
     }
 
-    /** 같은 zoneId가 중복으로 들어오면 (daily_check_id, zone_id) 유니크 제약 위반으로 500이 나므로 저장 전에 막는다. */
     private void requireDistinctZoneIds(List<DailyCheckPainArea> areas) {
         Set<String> seen = new HashSet<>();
         for (DailyCheckPainArea area : areas) {
@@ -221,7 +249,6 @@ public class DailyCheckService {
                 || dailyCheck.getAutoSource() != null;
     }
 
-    /** override가 있으면 그걸, 없으면 health_data 원본을 응답으로 돌려준다. */
     private DailyCheckResponse.AutoRecordResponse effectiveAutoRecord(DailyCheck dailyCheck) {
         if (hasAutoOverride(dailyCheck)) {
             return new DailyCheckResponse.AutoRecordResponse(
