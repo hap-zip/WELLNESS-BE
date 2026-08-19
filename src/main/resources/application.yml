@@ -1,0 +1,35 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: wellness-chat-backend
+  datasource:
+    url: jdbc:mysql://localhost:3306/wellness?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      # 개발 중에는 엔티티 기준으로 테이블 자동 생성. 운영 배포 전 Flyway/Liquibase 마이그레이션 + validate로 전환 필요.
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-days: 7
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: gpt-4o-mini
+  base-url: https://api.openai.com/v1
+  timeout-seconds: 20
+wellness:
+  guardrail:
+    enabled: true
+  daily-check:
+    min-days-for-pattern: 7
+    lookback-days: 14
+  persistent-signal:
+    lookback-days: 7
+    persistent-threshold-days: 4
+    worsening-threshold: 1.5
