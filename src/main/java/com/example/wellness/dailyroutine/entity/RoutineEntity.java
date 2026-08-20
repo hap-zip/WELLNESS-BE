@@ -18,7 +18,7 @@ public class RoutineEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "target_area", nullable = false)
+    @Column(name = "target_area", nullable = false, unique = true)
     private String targetArea;
 
     @Column(columnDefinition = "TEXT")

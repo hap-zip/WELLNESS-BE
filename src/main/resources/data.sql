@@ -1,5 +1,5 @@
 -- 1. 앞머리 (front-head)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'front-head',
            '이마와 눈 주변의 긴장을 완화하여 무거운 느낌을 덜어주는 부드러운 지압 루틴입니다.',
@@ -14,7 +14,7 @@ VALUES (
        );
 
 -- 2. 뒷머리 (back-head)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-head',
            '뒷머리와 목이 만나는 지점의 뻣뻣함을 풀어주는 마사지 루틴입니다.',
@@ -29,7 +29,7 @@ VALUES (
        );
 
 -- 3. 뒷목 (back-neck)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-neck',
            '뒷목 주변의 뻣뻣한 근육을 부드럽게 이완시키고 긴장을 덜어주는 스트레칭입니다.',
@@ -44,7 +44,7 @@ VALUES (
        );
 
 -- 4. 등 상단 (back-upper)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-upper',
            '등 위쪽과 날개뼈 주변의 결림을 풀어주고 부드럽게 이완하는 루틴입니다.',
@@ -59,7 +59,7 @@ VALUES (
        );
 
 -- 5. 허리 (back-lower)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-lower',
            '허리와 골반 주변의 뻐근함을 덜어주고 유연성을 높여주는 고양이 자세 루틴입니다.',
@@ -74,7 +74,7 @@ VALUES (
        );
 
 -- 6. 가슴 (front-chest)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'front-chest',
            '가슴 앞쪽 근육을 열어주어 호흡을 편안하게 하고 굽은 자세를 펴주는 스트레칭입니다.',
@@ -89,7 +89,7 @@ VALUES (
        );
 
 -- 7. 복부 (front-abdomen)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'front-abdomen',
            '복부 근육의 긴장을 풀어주고 전면부를 부드럽게 이완하는 코브라 자세 루틴입니다.',
@@ -104,7 +104,7 @@ VALUES (
        );
 
 -- 8. 왼쪽 앞어깨 (front-shoulder-left)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'front-shoulder-left',
            '왼쪽 어깨 앞면의 긴장을 풀어주어 부드러운 움직임을 돕는 스트레칭입니다.',
@@ -119,7 +119,7 @@ VALUES (
        );
 
 -- 9. 오른쪽 앞어깨 (front-shoulder-right)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'front-shoulder-right',
            '오른쪽 어깨 앞면의 긴장을 풀어주어 부드러운 움직임을 돕는 스트레칭입니다.',
@@ -134,7 +134,7 @@ VALUES (
        );
 
 -- 10. 왼쪽 등/어깨 (back-shoulder-left)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-shoulder-left',
            '뭉친 왼쪽 날개뼈 주변과 어깨 뒷면 근육을 시원하게 풀어주는 스트레칭입니다.',
@@ -149,7 +149,7 @@ VALUES (
        );
 
 -- 11. 오른쪽 등/어깨 (back-shoulder-right)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-shoulder-right',
            '뭉친 오른쪽 날개뼈 주변과 어깨 뒷면 근육을 시원하게 풀어주는 스트레칭입니다.',
@@ -164,7 +164,7 @@ VALUES (
        );
 
 -- 12. 왼쪽 앞팔 (front-arm-left)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'front-arm-left',
            '왼쪽 팔 앞면(전완부)의 뻐근함을 이완시켜 손목과 팔의 피로를 덜어주는 루틴입니다.',
@@ -179,7 +179,7 @@ VALUES (
        );
 
 -- 13. 오른쪽 앞팔 (front-arm-right)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'front-arm-right',
            '오른쪽 팔 앞면(전완부)의 뻐근함을 이완시켜 손목과 팔의 피로를 덜어주는 루틴입니다.',
@@ -194,7 +194,7 @@ VALUES (
        );
 
 -- 14. 왼쪽 뒷팔 (back-arm-left)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-arm-left',
            '왼쪽 팔 뒷면(삼두근)의 긴장을 풀어 팔을 가볍게 해주는 스트레칭입니다.',
@@ -209,7 +209,7 @@ VALUES (
        );
 
 -- 15. 오른쪽 뒷팔 (back-arm-right)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-arm-right',
            '오른쪽 팔 뒷면(삼두근)의 긴장을 풀어 팔을 가볍게 해주는 스트레칭입니다.',
@@ -224,7 +224,7 @@ VALUES (
        );
 
 -- 16. 왼쪽 앞다리 (front-leg-left)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'front-leg-left',
            '왼쪽 허벅지 앞면을 길게 늘려 하체의 피로를 부드럽게 이완하는 루틴입니다.',
@@ -239,7 +239,7 @@ VALUES (
        );
 
 -- 17. 오른쪽 앞다리 (front-leg-right)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'front-leg-right',
            '오른쪽 허벅지 앞면을 길게 늘려 하체의 피로를 부드럽게 이완하는 루틴입니다.',
@@ -254,7 +254,7 @@ VALUES (
        );
 
 -- 18. 왼쪽 뒷다리 (back-leg-left)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-leg-left',
            '왼쪽 다리 뒷면(햄스트링)을 부드럽게 풀어주어 다리를 가볍게 만들어주는 루틴입니다.',
@@ -270,7 +270,7 @@ VALUES (
        );
 
 -- 19. 오른쪽 뒷다리 (back-leg-right)
-INSERT INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
+INSERT IGNORE INTO routines (target_area, description, total_duration_minutes, precautions, steps_data)
 VALUES (
            'back-leg-right',
            '오른쪽 다리 뒷면(햄스트링)을 부드럽게 풀어주어 다리를 가볍게 만들어주는 루틴입니다.',
